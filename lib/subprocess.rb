@@ -82,9 +82,10 @@ module Subprocess
   # @see Process#initialize
   def self.check_output(cmd, opts={}, &blk)
     opts[:stdout] = PIPE
+    opts[:stderr] = PIPE
     child = Process.new(cmd, opts, &blk)
-    output, _ = child.communicate()
-    raise NonZeroExit.new(cmd, child.status) unless child.wait.success?
+    output, errors = child.communicate()
+    raise NonZeroExit.new("#{cmd}\n#{errors}", child.status) unless child.wait.success?
     output
   end
 
