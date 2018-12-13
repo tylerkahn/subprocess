@@ -85,7 +85,7 @@ module Subprocess
     opts[:stderr] = PIPE
     child = Process.new(cmd, opts, &blk)
     output, errors = child.communicate()
-    raise NonZeroExit.new("#{cmd}\n#{errors}", child.status) unless child.wait.success?
+    raise NonZeroExit.new(cmd, child.status, errors) unless child.wait.success?
     output
   end
 
@@ -140,13 +140,13 @@ module Subprocess
     #     abnormally.
     # @!attribute [r] status
     #   @return [::Process::Status] The Ruby status object returned by `waitpid`
-    attr_reader :command, :status
+    attr_reader :command, :status, :errors
 
     # Return an instance of {NonZeroExit}.
     #
     # @param [Array<String>] cmd The command that returned a non-zero status.
     # @param [::Process::Status] status The status returned by `waitpid`.
-    def initialize(cmd, status)
+    def initialize(cmd, status, errors)
       @command, @status = cmd.join(' '), status
       message = "Command #{command} "
       if status.exited?
@@ -157,6 +157,9 @@ module Subprocess
         message << "was stopped by signal #{status.stopsig}"
       else
         message << "exited for an unknown reason (FIXME)"
+      end
+      if errors && !errors.empty?
+        message << "\n#{errors}"
       end
       super(message)
     end
