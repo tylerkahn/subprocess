@@ -65,7 +65,7 @@ module Subprocess
   # @see Process#initialize
   def self.check_call(cmd, opts={}, &blk)
     status = Process.new(cmd, opts, &blk).wait
-    raise NonZeroExit.new(cmd, status) unless status.success?
+    raise NonZeroExit.new(cmd, status, self.status_to_s(status)) unless status.success?
     status
   end
 
